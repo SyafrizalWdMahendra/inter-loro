@@ -103,8 +103,8 @@ module.exports = {
           to: "icons",
         },
         {
-          from: "./src/styles/",
-          to: "docs/",
+          from: path.resolve(__dirname, "./src/styles/"),
+          to: path.resolve(__dirname, "docs/"),
         },
       ],
     }),
