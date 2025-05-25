@@ -15,9 +15,8 @@ module.exports = {
 
   // 2. Output
   output: {
-    filename: "[name].[contenthash].js",
+    filename: "[name].bundle.js",
     path: path.resolve(__dirname, "docs"),
-    publicPath: "/",
   },
 
   // 3. Loaders
