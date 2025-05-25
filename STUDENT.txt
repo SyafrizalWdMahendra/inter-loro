@@ -1,0 +1,22 @@
+https://syamadanisyah.github.io/share-story/
+
+andhung:
+{admin}
+login user
+registrasi user
+checkout user
+landing page (user)
+beranda
+
+aku:
+keranjang sukksess
+detail produk suksess
+tampilan produk yang di cari 
+profile - profile alamat setting suksess
+view all produk suksess
+status transaksi sukksess
+navbar suksess
+
+
+pertanyaanku ke deepseek:
+apakah kamu bisa buat tampilan profile beserta frontendnya seperti tokopedia yang sama seperti gambar dan untuk navbar profile sendiri hanya ada fitur biodata diri dan alamat saja lalu untuk safe mode itu tidak perlu dibuatkan ,lalu buatkan card edit tanggal,email,jenis kelamin ,no hp seperti card pada gambar no 3,dan untuk edit alamat dan tambah alamat coba buatkan card editnya sama seperti gambar no 4 dan di card tersebut tidak perlu mencantumkan pinpoint bisa?
