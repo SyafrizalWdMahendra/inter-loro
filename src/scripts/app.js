@@ -1,16 +1,16 @@
-import HomePresenter from './presenters/home-presenter.js';
-import StoryPresenter from './presenters/story-presenter.js';
-import AddStoryPresenter from './presenters/add-story-presenter.js';
-import AuthPresenter from './presenters/auth-presenter.js';
-import StoryModel from './models/story-model.js';
-import AuthModel from './models/auth-model.js';
-import '../styles/main.css';
+import HomePresenter from "./presenters/home-presenter.js";
+import StoryPresenter from "./presenters/story-presenter.js";
+import AddStoryPresenter from "./presenters/add-story-presenter.js";
+import AuthPresenter from "./presenters/auth-presenter.js";
+import StoryModel from "./models/story-model.js";
+import AuthModel from "./models/auth-model.js";
+import "../styles/main.css";
 
 // Database Class for IndexedDB
 class Database {
   constructor() {
-    this.dbName = 'StoryShareDB';
-    this.storeName = 'stories';
+    this.dbName = "StoryShareDB";
+    this.storeName = "stories";
     this.db = null;
     this.initDB();
   }
@@ -22,7 +22,7 @@ class Database {
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName, { keyPath: 'id' });
+          db.createObjectStore(this.storeName, { keyPath: "id" });
         }
       };
 
@@ -32,7 +32,7 @@ class Database {
       };
 
       request.onerror = (event) => {
-        console.error('IndexedDB error:', event.target.error);
+        console.error("IndexedDB error:", event.target.error);
         reject(event.target.error);
       };
     });
@@ -40,7 +40,7 @@ class Database {
 
   async saveStory(story) {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
       const request = store.put(story);
 
@@ -51,7 +51,7 @@ class Database {
 
   async getStories() {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([this.storeName], 'readonly');
+      const transaction = this.db.transaction([this.storeName], "readonly");
       const store = transaction.objectStore(this.storeName);
       const request = store.getAll();
 
@@ -62,7 +62,7 @@ class Database {
 
   async deleteStory(id) {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
       const request = store.delete(id);
 
@@ -74,10 +74,8 @@ class Database {
 
 // Helper function for push notifications
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -88,94 +86,98 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-class App {
+export default class App {
   constructor() {
     // Initialize core components
     this._authModel = new AuthModel();
     this._storyModel = new StoryModel(this._authModel);
     this._database = new Database(); // Initialize IndexedDB
-    
+
     // Setup application
     this._initPresenters();
     this._setupEventHandlers();
     this._checkAuthState();
-    
+
     // Register service worker and init push notifications
     this._registerServiceWorker();
-    
-    console.log('[APP] Application initialized');
+
+    console.log("[APP] Application initialized");
     this._setupInstallButton();
   }
 
-    _setupInstallButton() {
+  _setupInstallButton() {
     // Create just one button
-    this.installButton = document.createElement('button');
-    this.installButton.id = 'install-btn';
-    this.installButton.textContent = 'Install App';
-    this.installButton.style.display = 'none';
-    document.querySelector('.app-header').appendChild(this.installButton);
+    this.installButton = document.createElement("button");
+    this.installButton.id = "install-btn";
+    this.installButton.textContent = "Install App";
+    this.installButton.style.display = "none";
+    document.querySelector(".app-header").appendChild(this.installButton);
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
-      this.installButton.style.display = 'block';
+      this.installButton.style.display = "block";
     });
 
-    this.installButton.addEventListener('click', async () => {
+    this.installButton.addEventListener("click", async () => {
       if (!this.deferredPrompt) return;
-      
+
       this.deferredPrompt.prompt();
       const { outcome } = await this.deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        this.installButton.style.display = 'none';
+
+      if (outcome === "accepted") {
+        this.installButton.style.display = "none";
       }
       this.deferredPrompt = null;
     });
 
-    window.addEventListener('appinstalled', () => {
-      this.installButton.style.display = 'none';
+    window.addEventListener("appinstalled", () => {
+      this.installButton.style.display = "none";
     });
   }
 
   async _registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
+    if ("serviceWorker" in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('ServiceWorker registration successful');
-        
+        const registration = await navigator.serviceWorker.register(
+          "/service-worker.js"
+        );
+        console.log("ServiceWorker registration successful");
+
         // Initialize push notifications after successful registration
         if (this._authModel.getToken()) {
           this._initPushNotifications(registration);
         }
       } catch (error) {
-        console.log('ServiceWorker registration failed: ', error);
+        console.log("ServiceWorker registration failed: ", error);
       }
     }
   }
 
   async _initPushNotifications(registration) {
-    if ('Notification' in window && 'PushManager' in window) {
+    if ("Notification" in window && "PushManager" in window) {
       try {
         const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
+        if (permission === "granted") {
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('BCCs2eonMI-6H2ctvFaWg-UYdDv387Vno_bzUzALpB442r2lCnsHmtrx8biyPi_E-1fSGABK_Qs_GlvPoJJqxbk') // Replace with your VAPID key
+            applicationServerKey: urlBase64ToUint8Array(
+              "BCCs2eonMI-6H2ctvFaWg-UYdDv387Vno_bzUzALpB442r2lCnsHmtrx8biyPi_E-1fSGABK_Qs_GlvPoJJqxbk"
+            ), // Replace with your VAPID key
           });
 
           // Send subscription to your server
-          await fetch('https://story-api.dicoding.dev/v1/push-subscriptions', {
-            method: 'POST',
+          await fetch("https://story-api.dicoding.dev/v1/push-subscriptions", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${this._authModel.getToken()}`
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this._authModel.getToken()}`,
             },
-            body: JSON.stringify(subscription)
+            body: JSON.stringify(subscription),
           });
         }
       } catch (error) {
-        console.error('Push notification error:', error);
+        console.error("Push notification error:", error);
       }
     }
   }
@@ -185,30 +187,30 @@ class App {
       storyModel: this._storyModel,
       authModel: this._authModel,
       database: this._database,
-      viewContainer: document.getElementById('app-view'),
-      onNavigation: (route) => this._navigateTo(route)
+      viewContainer: document.getElementById("app-view"),
+      onNavigation: (route) => this._navigateTo(route),
     };
 
     this._presenters = {
       home: new HomePresenter(commonDependencies),
       story: new StoryPresenter({
         ...commonDependencies,
-        onStoryLoaded: () => this._updateNavIndicator()
+        onStoryLoaded: () => this._updateNavIndicator(),
       }),
       addStory: new AddStoryPresenter(commonDependencies),
       auth: new AuthPresenter({
         ...commonDependencies,
         onAuthSuccess: () => {
           this._checkAuthState();
-          this._navigateTo('home');
+          this._navigateTo("home");
           // Re-init push notifications after auth
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(registration => {
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.ready.then((registration) => {
               this._initPushNotifications(registration);
             });
           }
-        }
-      })
+        },
+      }),
     };
   }
 
@@ -216,26 +218,26 @@ class App {
     // Handle navigation
     this._hashChangeHandler = () => {
       const hash = window.location.hash;
-      console.log('[ROUTE] Hash changed:', hash);
+      console.log("[ROUTE] Hash changed:", hash);
       this._route();
     };
-    window.addEventListener('hashchange', this._hashChangeHandler);
+    window.addEventListener("hashchange", this._hashChangeHandler);
 
     // Visual feedback for nav links
     this._clickHandler = (e) => {
-      const navLink = e.target.closest('.nav-link');
+      const navLink = e.target.closest(".nav-link");
       if (navLink) {
-        navLink.classList.add('active');
-        setTimeout(() => navLink.classList.remove('active'), 100);
+        navLink.classList.add("active");
+        setTimeout(() => navLink.classList.remove("active"), 100);
       }
     };
-    document.addEventListener('click', this._clickHandler);
+    document.addEventListener("click", this._clickHandler);
 
     // Initial route
     this._route();
 
     // Listen for beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       this._deferredPrompt = e;
       // this._showInstallPrompt();
@@ -258,7 +260,7 @@ class App {
   //         this._deferredPrompt = null;
   //       });
   //     });
-      
+
   //     const header = document.querySelector('.app-header');
   //     if (header) {
   //       header.appendChild(installButton);
@@ -267,26 +269,28 @@ class App {
   // }
 
   _cleanupEventHandlers() {
-    window.removeEventListener('hashchange', this._hashChangeHandler);
-    document.removeEventListener('click', this._clickHandler);
+    window.removeEventListener("hashchange", this._hashChangeHandler);
+    document.removeEventListener("click", this._clickHandler);
   }
 
   async _route() {
     try {
       const hash = window.location.hash;
       // Handle empty hash case
-      if (!hash || hash === '#') {
-        return this._navigateTo('home');
+      if (!hash || hash === "#") {
+        return this._navigateTo("home");
       }
 
-      const [, route, id] = hash.split('/');
-      console.log('[ROUTE] Navigating to:', route || 'home', id);
+      const [, route, id] = hash.split("/");
+      console.log("[ROUTE] Navigating to:", route || "home", id);
 
       // Check if we're offline
       const isOnline = navigator.onLine;
-      if (!isOnline && route !== 'home') {
-        this._presenters.home.showError('You are offline. Some features may not be available.');
-        return this._navigateTo('home');
+      if (!isOnline && route !== "home") {
+        this._presenters.home.showError(
+          "You are offline. Some features may not be available."
+        );
+        return this._navigateTo("home");
       }
 
       if (document.startViewTransition) {
@@ -297,63 +301,63 @@ class App {
         await this._handleRoute(route, id);
       }
     } catch (error) {
-      console.error('[ROUTE] Error:', error);
-      this._presenters.home.showError('Failed to load page');
+      console.error("[ROUTE] Error:", error);
+      this._presenters.home.showError("Failed to load page");
     }
   }
 
   async _handleRoute(route, id) {
     // Handle undefined route (empty hash)
     if (!route) {
-      return this._navigateTo('home');
+      return this._navigateTo("home");
     }
 
     // Route guards
-    const protectedRoutes = ['add-story', 'stories'];
+    const protectedRoutes = ["add-story", "stories"];
     if (protectedRoutes.includes(route)) {
       if (!this._authModel.getToken()) {
-        console.log('[AUTH] Redirecting to login');
-        return this._navigateTo('login');
+        console.log("[AUTH] Redirecting to login");
+        return this._navigateTo("login");
       }
     }
 
     // Route handling
     switch (route) {
-      case '':
-      case 'home':
+      case "":
+      case "home":
         await this._presenters.home.show();
         break;
-        
-      case 'stories':
+
+      case "stories":
         if (id) {
           await this._presenters.story.showDetail(id);
         } else {
           await this._presenters.story.show();
         }
         break;
-        
-      case 'add-story':
+
+      case "add-story":
         await this._presenters.addStory.show();
         break;
-        
-      case 'login':
+
+      case "login":
         await this._presenters.auth.showLogin();
         break;
-        
-      case 'register':
+
+      case "register":
         await this._presenters.auth.showRegister();
         break;
-        
-      case 'logout':
+
+      case "logout":
         await this._authModel.logout();
-        this._navigateTo('home');
+        this._navigateTo("home");
         break;
-        
+
       default:
-        console.warn('[ROUTE] Unknown route:', route);
+        console.warn("[ROUTE] Unknown route:", route);
         await this._presenters.home.show();
     }
-    
+
     this._updateNavIndicator();
   }
 
@@ -366,30 +370,34 @@ class App {
       const isAuthenticated = await this._authModel.checkAuthState();
       this._updateAuthUI(isAuthenticated);
     } catch (error) {
-      console.error('[AUTH] Check failed:', error);
+      console.error("[AUTH] Check failed:", error);
       this._updateAuthUI(false);
     }
   }
 
   _updateAuthUI(isAuthenticated) {
-    const authLink = document.getElementById('auth-link');
+    const authLink = document.getElementById("auth-link");
     if (authLink) {
-      authLink.textContent = isAuthenticated ? 'Logout' : 'Login';
-      authLink.setAttribute('href', isAuthenticated ? '#/logout' : '#/login');
+      authLink.textContent = isAuthenticated ? "Logout" : "Login";
+      authLink.setAttribute("href", isAuthenticated ? "#/logout" : "#/login");
     }
   }
 
   _updateNavIndicator() {
-    document.querySelectorAll('.nav-link').forEach(link => {
-      const linkPath = link.getAttribute('href');
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      const linkPath = link.getAttribute("href");
       const currentPath = window.location.hash;
-      
+
       // Handle root path
-      const isActive = (linkPath === '#/home' && (currentPath === '#' || currentPath === '#/' || currentPath === '')) || 
-                      (linkPath === currentPath);
-      
-      link.setAttribute('aria-current', isActive ? 'page' : 'false');
-      link.classList.toggle('active', isActive);
+      const isActive =
+        (linkPath === "#/home" &&
+          (currentPath === "#" ||
+            currentPath === "#/" ||
+            currentPath === "")) ||
+        linkPath === currentPath;
+
+      link.setAttribute("aria-current", isActive ? "page" : "false");
+      link.classList.toggle("active", isActive);
     });
   }
 
@@ -399,17 +407,17 @@ class App {
 }
 
 // Application bootstrap with enhanced error handling
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   let appInstance;
-  
+
   try {
-    if (!document.getElementById('app-view')) {
-      throw new Error('Missing app-view container');
+    if (!document.getElementById("app-view")) {
+      throw new Error("Missing app-view container");
     }
-    
+
     appInstance = new App();
   } catch (error) {
-    console.error('[BOOT] Failed to start:', error);
+    console.error("[BOOT] Failed to start:", error);
     document.body.innerHTML = `
       <div class="error-screen">
         <h1>Application Error</h1>
