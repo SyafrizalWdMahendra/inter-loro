@@ -10,7 +10,7 @@ module.exports = {
   // 1. Mode and Entry
   mode: "development", // Change to 'production' for final build
   entry: {
-    main: "./src/scripts/index.js",
+    main: "./src/scripts/app.js",
   },
 
   // 2. Output
